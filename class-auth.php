@@ -13,6 +13,7 @@ use WP_Error;
 use WP_REST_Request;
 use WP_REST_Response;
 use WP_REST_Server;
+use \licensing\methods\ManageLicensesMethods as LicensesMethods;
 
 use Firebase\JWT\JWT;
 
@@ -136,6 +137,7 @@ class Auth {
 		$username    = $request->get_param( 'username' );
 		$password    = $request->get_param( 'password' );
 		$custom_auth = $request->get_param( 'custom_auth' );
+		$license 	 = $request->get_param( 'license');
 
 		// First thing, check the secret key if not exist return a error.
 		if ( ! $secret_key ) {
@@ -168,9 +170,47 @@ class Auth {
 				403
 			);
 		}
+		//Valid credentials, now find the company and team
+		if(class_exists('\licensing\methods\ManageLicensesMethods')){
+			$args = array(
+				'method' => 'get_team_by_license',
+				'license' => $license
+			)
+			$response = new LicensesMethods($args, $user);
 
-		// Valid credentials, the user exists, let's generate the token.
-		return $this->generate_token( $user, false );
+			if($response->status == 200){
+				$user = \wp_get_current_user();
+				// Valid credentials, the user exists, let's generate the token.
+				return $this->generate_token( $user, $response, false );
+
+			} else {
+			return new \WP_REST_Response(
+				array(
+					'success'    => false,
+					'statusCode' => $response->status,
+					'code'       => $response->message,
+					'message'    => $response->message,
+					'data'       => array(),
+				),
+				$response->status
+			);
+			}
+
+		} else {
+
+			return new \WP_REST_Response(
+				array(
+					'success'    => false,
+					'statusCode' => 403,
+					'code'       => 'sorce_licensing_bad_config',
+					'message'    => __( 'Sorce and JWT are not configured properly.', 'jwt-auth' ),
+					'data'       => array(),
+				),
+				403
+			);
+		}
+
+
 	}
 
 	/**
@@ -181,7 +221,7 @@ class Auth {
 	 *
 	 * @return WP_REST_Response|string Return as raw token string or as a formatted WP_REST_Response.
 	 */
-	public function generate_token( $user, $return_raw = true ) {
+	public function generate_token( $user, $companylookup = null, $return_raw = true,  ) {
 		$secret_key = defined( 'JWT_AUTH_SECRET_KEY' ) ? JWT_AUTH_SECRET_KEY : false;
 		$issued_at  = time();
 		$not_before = $issued_at;
@@ -197,6 +237,7 @@ class Auth {
 			'data' => array(
 				'user' => array(
 					'id' => $user->ID,
+
 				),
 			),
 		);
@@ -210,6 +251,7 @@ class Auth {
 		if ( $return_raw ) {
 			return $token;
 		}
+		
 
 		// The token is signed, now create object with basic info of the user.
 		$response = array(
@@ -227,6 +269,11 @@ class Auth {
 				'displayName' => $user->display_name,
 			),
 		);
+
+		if($companylookup){
+			$response['data']['company_name'] = $companylookup->response['company_name'];
+			$response['data']['team_name'] = $companylookup->response['team_name'];
+		}
 
 		// Let the user modify the data before send it back.
 		return apply_filters( 'jwt_auth_valid_credential_response', $response, $user );
