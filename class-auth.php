@@ -175,7 +175,7 @@ class Auth {
 			$args = array(
 				'method' => 'get_team_by_license',
 				'license' => $license
-			)
+			);
 			$response = new LicensesMethods($args, $user);
 
 			if($response->status == 200){
@@ -188,8 +188,8 @@ class Auth {
 				array(
 					'success'    => false,
 					'statusCode' => $response->status,
-					'code'       => $response->message,
-					'message'    => $response->message,
+					'code'       => $response->response,
+					'message'    => $response->response,
 					'data'       => array(),
 				),
 				$response->status
@@ -221,7 +221,7 @@ class Auth {
 	 *
 	 * @return WP_REST_Response|string Return as raw token string or as a formatted WP_REST_Response.
 	 */
-	public function generate_token( $user, $companylookup = null, $return_raw = true,  ) {
+	public function generate_token( $user, $companylookup = null, $return_raw = true  ) {
 		$secret_key = defined( 'JWT_AUTH_SECRET_KEY' ) ? JWT_AUTH_SECRET_KEY : false;
 		$issued_at  = time();
 		$not_before = $issued_at;

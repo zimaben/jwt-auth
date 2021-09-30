@@ -1,8 +1,8 @@
 <?php
 /**
- * Plugin Name: JWT Auth
+ * Plugin Name: JWT Auth Sorce
  * Plugin URI:  https://github.com/usefulteam/jwt-auth
- * Description: WordPress JWT Authentication.
+ * Description: Sorce Custom Implementation of WordPress JWT Authentication.
  * Version:     2.0.0
  * Author:      Useful Team
  * Author URI:  https://usefulteam.com
