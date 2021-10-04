@@ -50,5 +50,5 @@ jobs:
           PLUGIN_PATH: /home/bitnami/apps/wordpress/htdocs/wp-content/plugins
         run: |
               scp -v /var/tmp/$PLUGIN_NAME.zip staging:$DEPLOY_DIR
-              ssh staging "cd $DEPLOY_DIR;rm -rf $PLUGIN_NAME.backup;mv $PLUGIN_PATH/$PLUGIN_NAME $PLUGIN_NAME.backup;unzip $PLUGIN_NAME.zip; mv $PLUGIN_NAME $PLUGIN_PATH;"
+              ssh staging "cd $DEPLOY_DIR;rm -rf $PLUGIN_NAME.backup;sudo mv $PLUGIN_PATH/$PLUGIN_NAME $PLUGIN_NAME.backup;unzip $PLUGIN_NAME.zip; mv $PLUGIN_NAME $PLUGIN_PATH;"
 
